@@ -119,6 +119,24 @@ WEB端/
 
 ---
 
+## 仓库
+
+- 源码：https://github.com/Bouquets-ai/StrikeAgent-Web
+- 公网预览（启用 Pages 后）：https://bouquets-ai.github.io/StrikeAgent-Web/
+
+### 首次开启 GitHub Pages
+
+代码与 `gh-pages` 分支已推送。若站点仍 404，请在 GitHub 仓库中 **只需操作一次**：
+
+1. 打开 [StrikeAgent-Web → Settings → Pages](https://github.com/Bouquets-ai/StrikeAgent-Web/settings/pages)
+2. **Build and deployment → Source** 任选其一：
+   - **GitHub Actions**（推荐）：推送 `main` 后自动构建部署
+   - **Deploy from a branch**：Branch 选 `gh-pages`，Folder 选 `/ (root)`
+
+保存后等待 1～3 分钟，访问上方公网地址。
+
+---
+
 ## 构建与部署
 
 ```bash
