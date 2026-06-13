@@ -1,0 +1,252 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   Design tokens — derived from DESIGN.md (Claude warm editorial system).
+   Cream canvas + coral voltage + dark navy product surfaces.
+---------------------------------------------------------------------------- */
+@theme {
+  --color-primary: #cc785c;
+  --color-primary-active: #a9583e;
+  --color-primary-soft: #e6c4b6;
+
+  --color-ink: #141413;
+  --color-body: #3d3d3a;
+  --color-body-strong: #252523;
+  --color-muted: #6c6a64;
+  --color-muted-soft: #8e8b82;
+
+  --color-hairline: #e6dfd8;
+  --color-hairline-soft: #ebe6df;
+
+  --color-canvas: #faf9f5;
+  --color-surface-soft: #f5f0e8;
+  --color-surface-card: #efe9de;
+  --color-surface-strong: #e8e0d2;
+
+  --color-dark: #181715;
+  --color-dark-elevated: #252320;
+  --color-dark-soft: #1f1e1b;
+
+  --color-on-dark: #faf9f5;
+  --color-on-dark-soft: #a09d96;
+
+  /* product-line semantic accents (mapped to the diagram legend) */
+  --color-agent: #e8a55a;   /* StrikeAgent module — amber/gold */
+  --color-gpt: #5db8a6;     /* StrikeGPT module — teal/green */
+  --color-root: #cc785c;    /* Entry / Root — coral */
+
+  --color-teal: #5db8a6;
+  --color-amber: #e8a55a;
+  --color-success: #5db872;
+  --color-warning: #d4a017;
+  --color-error: #c64545;
+
+  --font-display: "Newsreader", "Noto Serif SC", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* ----------------------------------------------------------------------------
+   Dark theme — warm editorial inverted. Deep roasted-charcoal canvas, cream
+   ink, the same coral voltage (nudged brighter so it still sings on dark).
+   Overrides the @theme tokens via equal-specificity, later source order.
+---------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --color-primary: #e08a6b;
+  --color-primary-active: #c46d4f;
+  --color-primary-soft: #6b3e2e;
+
+  --color-ink: #faf6ef;
+  --color-body: #cfc7ba;
+  --color-body-strong: #ece6db;
+  --color-muted: #9b9286;
+  --color-muted-soft: #7e7568;
+
+  --color-hairline: #342d25;
+  --color-hairline-soft: #2a241d;
+
+  --color-canvas: #14110f;
+  --color-surface-soft: #1b1714;
+  --color-surface-card: #221d18;
+  --color-surface-strong: #2a241e;
+
+  --color-dark: #0e0c0a;
+  --color-dark-elevated: #1c1814;
+  --color-dark-soft: #161310;
+
+  --color-on-dark: #faf6ef;
+  --color-on-dark-soft: #a39a8e;
+
+  --color-agent: #eab265;
+  --color-gpt: #69c6b3;
+  --color-teal: #69c6b3;
+  --color-amber: #eab265;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1;
+    overflow-x: hidden;
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: #fff;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  :lang(zh-CN) h1,
+  :lang(zh-CN) h2,
+  :lang(zh-CN) h3,
+  :lang(zh-CN) h4 {
+    letter-spacing: 0.01em;
+    font-weight: 600;
+  }
+
+  /* Custom scrollbar to keep the warm editorial tone */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-soft);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-hairline);
+    border-radius: 9999px;
+    border: 2px solid var(--color-surface-soft);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-soft);
+  }
+}
+
+@layer components {
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  :lang(zh-CN) .eyebrow {
+    letter-spacing: 0.12em;
+  }
+
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted-soft);
+  }
+
+  /* dossier "stamp" frame */
+  .stamp {
+    border: 1.5px solid var(--color-primary);
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  /* scroll-reveal default state — fade + slide, direction via data-reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(34px);
+    will-change: transform, opacity;
+  }
+  .reveal[data-reveal='left'] {
+    transform: translateX(-44px);
+  }
+  .reveal[data-reveal='right'] {
+    transform: translateX(44px);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+}
+
+/* keep SVG node scale/translate animations anchored in place */
+.arch-node {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.arch-node rect:first-of-type {
+  transition: filter 0.2s ease;
+}
+.arch-node:hover rect:first-of-type {
+  filter: brightness(1.06) saturate(1.05);
+}
+
+/* marching-ants dashed flow for the architecture data-flow connectors */
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.flow-line {
+  stroke-dasharray: 6 6;
+  animation: flow-dash 0.9s linear infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-3%, -2%); }
+}
+
+/* breathing "thinking" pulse for the attack-brain hub */
+@keyframes core-pulse {
+  0% { transform: scale(0.7); opacity: 0.5; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.core-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: core-pulse 2.1s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .flow-line { animation: none; }
+  .core-pulse { animation: none; opacity: 0; }
+  .reveal,
+  .reveal[data-reveal='left'],
+  .reveal[data-reveal='right'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

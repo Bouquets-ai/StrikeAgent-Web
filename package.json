@@ -1,0 +1,33 @@
+{
+  "name": "strikeagent-web",
+  "private": true,
+  "version": "1.0.0",
+  "author": "Bouquets-ai (https://github.com/Bouquets-ai)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bouquets-ai"
+  },
+  "homepage": "https://bouquets-ai.github.io/StrikeAgent-Web/",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "animejs": "^4.4.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "gh-pages": "^6.3.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}
