@@ -13,33 +13,52 @@ import { useApp } from '../context/AppContext'
 
 type Finding = { code: string; cvss: number }
 
-/** Top 20 most notorious CVEs, 2021–2026 — CISA KEV / joint advisories & industry coverage. */
-const TOP_CVE_FINDINGS: Finding[] = [
+/**
+ * Well-known CVEs spread across CVSS severity bands so the reticle surfaces
+ * a realistic mix of low / medium / high / critical findings — not only 9.8s.
+ */
+const CVE_FINDINGS: Finding[] = [
+  // critical (9.0–10.0)
   { code: 'CVE-2021-44228', cvss: 10.0 }, // Log4Shell
-  { code: 'CVE-2021-26855', cvss: 9.8 }, // ProxyLogon
-  { code: 'CVE-2021-34473', cvss: 9.8 }, // ProxyShell
-  { code: 'CVE-2021-34527', cvss: 8.8 }, // PrintNightmare
-  { code: 'CVE-2021-40539', cvss: 9.8 }, // Zoho ManageEngine
-  { code: 'CVE-2022-1388', cvss: 9.8 }, // F5 BIG-IP
-  { code: 'CVE-2022-22965', cvss: 9.8 }, // Spring4Shell
-  { code: 'CVE-2022-26134', cvss: 9.8 }, // Confluence OGNL
-  { code: 'CVE-2022-41082', cvss: 8.8 }, // ProxyNotShell
-  { code: 'CVE-2023-0669', cvss: 7.2 }, // GoAnywhere
-  { code: 'CVE-2023-20198', cvss: 10.0 }, // Cisco IOS XE
-  { code: 'CVE-2023-22515', cvss: 10.0 }, // Confluence auth bypass
-  { code: 'CVE-2023-34362', cvss: 9.8 }, // MOVEit
-  { code: 'CVE-2023-3519', cvss: 9.8 }, // Citrix NetScaler
-  { code: 'CVE-2023-4966', cvss: 9.4 }, // Citrix Bleed
-  { code: 'CVE-2023-46747', cvss: 9.8 }, // ColdFusion
-  { code: 'CVE-2024-1709', cvss: 10.0 }, // ConnectWise ScreenConnect
   { code: 'CVE-2024-3094', cvss: 10.0 }, // XZ Utils backdoor
-  { code: 'CVE-2024-3400', cvss: 10.0 }, // PAN-OS
+  { code: 'CVE-2021-26855', cvss: 9.8 }, // ProxyLogon
+  { code: 'CVE-2023-34362', cvss: 9.8 }, // MOVEit
+  { code: 'CVE-2014-6271', cvss: 9.8 }, // Shellshock
   { code: 'CVE-2025-53770', cvss: 9.8 }, // ToolShell / SharePoint
+  { code: 'CVE-2023-4966', cvss: 9.4 }, // Citrix Bleed
+  // high (7.0–8.9)
+  { code: 'CVE-2021-34527', cvss: 8.8 }, // PrintNightmare
+  { code: 'CVE-2017-0144', cvss: 8.1 }, // EternalBlue
+  { code: 'CVE-2021-4034', cvss: 7.8 }, // PwnKit
+  { code: 'CVE-2016-5195', cvss: 7.8 }, // Dirty COW
+  { code: 'CVE-2021-3156', cvss: 7.8 }, // Sudo Baron Samedit
+  { code: 'CVE-2014-0160', cvss: 7.5 }, // Heartbleed
+  { code: 'CVE-2023-44487', cvss: 7.5 }, // HTTP/2 Rapid Reset
+  // medium (4.0–6.9)
+  { code: 'CVE-2016-0800', cvss: 5.9 }, // DROWN
+  { code: 'CVE-2018-15473', cvss: 5.3 }, // OpenSSH user enumeration
+  { code: 'CVE-2011-3389', cvss: 4.3 }, // BEAST
+  // low (0.1–3.9)
+  { code: 'CVE-2014-3566', cvss: 3.4 }, // POODLE
+  { code: 'CVE-2003-1567', cvss: 2.6 }, // HTTP TRACE / XST
 ]
+
+type Severity = { label: { en: string; zh: string }; rgb: string }
+
+/** CVSS v3.1 band → callout label + accent colour (green → amber → orange → red). */
+const severityOf = (score: number): Severity => {
+  if (score >= 9.0)
+    return { label: { en: 'CRITICAL VULNERABILITY DETECTED', zh: '发现严重漏洞' }, rgb: '214, 40, 40' } // vivid red
+  if (score >= 7.0)
+    return { label: { en: 'HIGH-RISK VULNERABILITY DETECTED', zh: '发现高危漏洞' }, rgb: '232, 126, 34' } // vivid orange
+  if (score >= 4.0)
+    return { label: { en: 'MEDIUM-RISK VULNERABILITY DETECTED', zh: '发现中危漏洞' }, rgb: '224, 168, 30' } // gold/amber
+  return { label: { en: 'LOW-RISK VULNERABILITY DETECTED', zh: '发现低危漏洞' }, rgb: '46, 164, 90' } // green
+}
 
 const scoreOf = (f: Finding) => f.cvss
 
-const pickFinding = () => TOP_CVE_FINDINGS[Math.floor(Math.random() * TOP_CVE_FINDINGS.length)]
+const pickFinding = () => CVE_FINDINGS[Math.floor(Math.random() * CVE_FINDINGS.length)]
 
 type Lock = {
   ax: number
@@ -91,6 +110,10 @@ export default function ReconBackground() {
     // ---- motion state machine: travel -> dwell(lock) -> travel ----------
     let phase: 'travel' | 'dwell' = 'travel'
     let dwellStart = 0
+    // the finding the reticle is currently hunting; its severity tints the whole
+    // reticle so the colour visibly changes from one lock to the next.
+    let finding: Finding = pickFinding()
+    let lockRgb = severityOf(finding.cvss).rgb
     const anchor = { ax: 0, ay: 0 }
 
     const pickGoal = () => {
@@ -106,6 +129,13 @@ export default function ReconBackground() {
       }
       goal.x = nx
       goal.y = ny
+    }
+
+    // choose the next finding (+ colour) and a new point to cruise toward
+    const newTarget = () => {
+      finding = pickFinding()
+      lockRgb = severityOf(finding.cvss).rgb
+      pickGoal()
     }
 
     const CHIP_W = 210
@@ -166,13 +196,13 @@ export default function ReconBackground() {
       }
       anchor.ax = spot.ax
       anchor.ay = spot.ay
-      setLock({ ax: spot.ax, ay: spot.ay, side: spot.side, up: spot.up, finding: pickFinding() })
+      setLock({ ax: spot.ax, ay: spot.ay, side: spot.side, up: spot.up, finding })
     }
 
     const leaveDwell = () => {
       phase = 'travel'
       setLock(null)
-      pickGoal()
+      newTarget()
     }
 
     // ---- drawing --------------------------------------------------------
@@ -224,24 +254,25 @@ export default function ReconBackground() {
     }
 
     const drawReticle = (t: number, locked: boolean) => {
+      const col = lockRgb
       ctx.save()
       ctx.translate(reticle.x, reticle.y)
 
       // idle breathing pulse (gentler than the lock-on burst)
       const pulse = (t % 1600) / 1600
-      ctx.strokeStyle = `rgba(${CORAL}, ${0.32 * (1 - pulse)})`
+      ctx.strokeStyle = `rgba(${col}, ${0.32 * (1 - pulse)})`
       ctx.lineWidth = 1.3
       ctx.beginPath()
       ctx.arc(0, 0, R * (0.7 + pulse * 0.6), 0, Math.PI * 2)
       ctx.stroke()
 
       const main = locked ? 0.85 : 0.7
-      ctx.strokeStyle = `rgba(${CORAL}, ${main})`
+      ctx.strokeStyle = `rgba(${col}, ${main})`
       ctx.lineWidth = 1.5
       ctx.beginPath()
       ctx.arc(0, 0, R, 0, Math.PI * 2)
       ctx.stroke()
-      ctx.strokeStyle = `rgba(${CORAL}, ${locked ? 0.6 : 0.5})`
+      ctx.strokeStyle = `rgba(${col}, ${locked ? 0.6 : 0.5})`
       ctx.beginPath()
       ctx.arc(0, 0, R * 0.5, 0, Math.PI * 2)
       ctx.stroke()
@@ -249,7 +280,7 @@ export default function ReconBackground() {
       // rotating corner ticks
       ctx.save()
       ctx.rotate(((t % 12000) / 12000) * Math.PI * 2)
-      ctx.strokeStyle = `rgba(${CORAL}, 0.6)`
+      ctx.strokeStyle = `rgba(${col}, 0.6)`
       ctx.lineWidth = 1.5
       const tick = 12
       for (let i = 0; i < 4; i++) {
@@ -263,7 +294,7 @@ export default function ReconBackground() {
 
       // cross-hairs (dashed when locked, for a targeting-frame feel)
       ctx.save()
-      ctx.strokeStyle = `rgba(${CORAL}, 0.55)`
+      ctx.strokeStyle = `rgba(${col}, 0.55)`
       ctx.lineWidth = 1.3
       if (locked) ctx.setLineDash([4, 4])
       ctx.beginPath()
@@ -282,7 +313,7 @@ export default function ReconBackground() {
       if (locked) {
         const br = R + 16
         const corner = 16
-        ctx.strokeStyle = `rgba(${CORAL}, 0.9)`
+        ctx.strokeStyle = `rgba(${col}, 0.9)`
         ctx.lineWidth = 2
         const corners: [number, number, number, number][] = [
           [-br, -br, 1, 1],
@@ -300,7 +331,7 @@ export default function ReconBackground() {
       }
 
       // center dot
-      ctx.fillStyle = `rgba(${CORAL}, 0.95)`
+      ctx.fillStyle = `rgba(${col}, 0.95)`
       ctx.beginPath()
       ctx.arc(0, 0, 3, 0, Math.PI * 2)
       ctx.fill()
@@ -310,7 +341,7 @@ export default function ReconBackground() {
 
     const drawLockRing = (p: number) => {
       const r = R + p * 30
-      ctx.strokeStyle = `rgba(${CORAL}, ${0.55 * (1 - p)})`
+      ctx.strokeStyle = `rgba(${lockRgb}, ${0.55 * (1 - p)})`
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.arc(reticle.x, reticle.y, r, 0, Math.PI * 2)
@@ -354,10 +385,10 @@ export default function ReconBackground() {
       if (spot) {
         anchor.ax = spot.ax
         anchor.ay = spot.ay
-        setLock({ ax: spot.ax, ay: spot.ay, side: spot.side, up: spot.up, finding: pickFinding() })
+        setLock({ ax: spot.ax, ay: spot.ay, side: spot.side, up: spot.up, finding })
       }
     } else {
-      pickGoal()
+      newTarget()
       raf = requestAnimationFrame(render)
     }
 
@@ -383,9 +414,10 @@ function Callout({ lock }: { lock: Lock | null }) {
   const shown = !!lock
 
   const f = cur?.finding
-  const sevColor = 'var(--color-error)'
   const score = f ? scoreOf(f) : 0
-  const title = f ? tx({ en: 'CRITICAL VULNERABILITY DETECTED', zh: '发现严重漏洞' }) : ''
+  const sev = severityOf(score)
+  const sevColor = `rgb(${sev.rgb})`
+  const title = f ? tx(sev.label) : ''
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
@@ -424,7 +456,7 @@ function Callout({ lock }: { lock: Lock | null }) {
                 className="h-full rounded-full"
                 style={{
                   width: shown ? `${(score / 10) * 100}%` : '0%',
-                  background: 'linear-gradient(90deg, var(--color-error), var(--color-primary))',
+                  background: `linear-gradient(90deg, color-mix(in srgb, ${sevColor} 55%, transparent), ${sevColor})`,
                   transition: 'width 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
                   transitionDelay: shown ? '0.3s' : '0s',
                 }}
