@@ -79,7 +79,7 @@ export default function ReconBackground() {
     resize()
     window.addEventListener('resize', resize)
 
-    const R = 60 // reticle radius
+    const R = 46 // reticle radius
     const OFF_X = R + 30 // callout leader length (horizontal)
     const OFF_Y = R + 22 // callout leader length (vertical)
     const reticle = { x: width * 0.74, y: height * 0.42 }
