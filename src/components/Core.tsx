@@ -114,7 +114,7 @@ function BrainLoop() {
 
 const LINE_H = 26
 const PAD_Y = 18
-// source = line 0, dangerous concat = line 3, sink = line 5
+// source = user bytes (line 0), tainted stream = line 3, sink = readObject (line 5)
 const SRC_LINE = 0
 const SINK_LINE = 5
 const SWEEP = 5 * LINE_H
@@ -188,7 +188,7 @@ function CodeScan() {
     <div className="overflow-hidden rounded-xl border border-[var(--color-hairline)] bg-[var(--color-dark)]">
       {/* title bar */}
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-        <span className="font-mono text-xs text-[var(--color-on-dark-soft)]">users.php</span>
+        <span className="font-mono text-xs text-[var(--color-on-dark-soft)]">OrderService.java</span>
         <span className="font-mono text-[10px] tracking-wide text-[var(--color-on-dark-soft)]">StrikeAgent-Coder</span>
       </div>
 
@@ -218,36 +218,44 @@ function CodeScan() {
         />
 
         <CodeRow n={1}>
-          <span style={{ color: ACCENT }}>$id</span>
+          <span style={{ color: 'var(--color-teal)' }}>byte[]</span>
+          <C>{' '}</C>
+          <span style={{ color: ACCENT }}>body</span>
           <C>{' = '}</C>
-          <span className="text-[var(--color-on-dark-soft)]">$_GET</span>
-          <C>{"['id'];"}</C>
-          <Tag flag="src" color={ACCENT}>user input</Tag>
+          <span className="text-[var(--color-on-dark-soft)]">readBody</span>
+          <C>{'(req);'}</C>
+          <Tag flag="src" color={ACCENT}>request bytes</Tag>
         </CodeRow>
         <CodeRow n={2} />
         <CodeRow n={3}>
-          <span className="text-[var(--color-on-dark-soft)]">$sql</span>
-          <C>{' = '}</C>
-          <span style={{ color: 'var(--color-teal)' }}>"SELECT * FROM users</span>
+          <span className="text-[var(--color-on-dark-soft)]">var</span>
+          <C>{' ois = '}</C>
+          <span className="text-[var(--color-on-dark-soft)]">new</span>
+          <C>{' '}</C>
+          <span style={{ color: 'var(--color-teal)' }}>ObjectInputStream</span>
+          <C>{'('}</C>
         </CodeRow>
         <CodeRow n={4} danger>
-          <C>{'      '}</C>
-          <span style={{ color: 'var(--color-teal)' }}>WHERE id = "</span>
-          <C>{' . '}</C>
-          <span style={{ color: ACCENT }}>$id;</span>
-          <Tag flag="danger" color={ERR}>string-built SQL</Tag>
+          <C>{'    '}</C>
+          <span className="text-[var(--color-on-dark-soft)]">new</span>
+          <C>{' '}</C>
+          <span style={{ color: 'var(--color-teal)' }}>ByteArrayInputStream</span>
+          <C>{'('}</C>
+          <span style={{ color: ACCENT }}>body</span>
+          <C>{'));'}</C>
+          <Tag flag="danger" color={ERR}>untrusted stream</Tag>
         </CodeRow>
         <CodeRow n={5} />
         <CodeRow n={6}>
-          <span className="text-[var(--color-on-dark-soft)]">$db</span>
-          <C>{'->query('}</C>
-          <span className="text-[var(--color-on-dark-soft)]">$sql</span>
-          <C>{');'}</C>
-          <Tag flag="sink" color={ERR}>executed</Tag>
+          <span style={{ color: 'var(--color-teal)' }}>Object</span>
+          <C>{' o = '}</C>
+          <span className="text-[var(--color-on-dark-soft)]">ois</span>
+          <C>{'.readObject();'}</C>
+          <Tag flag="sink" color={ERR}>deserialize → RCE</Tag>
         </CodeRow>
 
         <p className="mono-label mt-4 pl-1 text-[var(--color-on-dark-soft)]">
-          {tx({ en: 'taint traced: input → query', zh: '污点链路：输入 → 执行' })}
+          {tx({ en: 'taint traced: bytes → readObject', zh: '污点链路：字节流 → 反序列化' })}
         </p>
       </div>
     </div>
